@@ -10,12 +10,24 @@ import os
 import streamlit as st
 
 # Streamlit Cloud secrets -> environment variables, before importing modules that read them.
+SECRETS_ERROR = None
 try:
     for key, value in st.secrets.items():
         if isinstance(value, str):
             os.environ.setdefault(key, value)
-except Exception:  # no secrets file locally: .env is used instead
+except FileNotFoundError:  # running locally without .streamlit/secrets.toml: .env is used instead
     pass
+except Exception as e:  # secrets exist but couldn't be parsed (usually a TOML formatting problem)
+    SECRETS_ERROR = type(e).__name__
+
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv()
+REQUIRED = ["ANTHROPIC_API_KEY", "SNOWFLAKE_ACCOUNT", "SNOWFLAKE_USER", "SNOWFLAKE_ROLE",
+            "SNOWFLAKE_WAREHOUSE", "SNOWFLAKE_DATABASE", "SNOWFLAKE_SCHEMA"]
+MISSING = [k for k in REQUIRED if not os.environ.get(k)]
+if not (os.environ.get("SNOWFLAKE_PRIVATE_KEY") or os.environ.get("SNOWFLAKE_PRIVATE_KEY_PATH")):
+    MISSING.append("SNOWFLAKE_PRIVATE_KEY")
 
 from assistant import ask, system_prompt  # noqa: E402
 from rag import search  # noqa: E402
@@ -97,6 +109,15 @@ with st.sidebar:
     if st.button("New conversation"):
         st.session_state.history, st.session_state.turns = None, []
         st.rerun()
+
+if MISSING:
+    st.error(
+        "The app isn't configured yet. Missing settings: **" + ", ".join(MISSING) + "**. "
+        "Add them under Manage app → Settings → Secrets (top level, no [section] header)."
+        + (f" The Secrets box couldn't be read ({SECRETS_ERROR}): check the TOML formatting and quotes."
+           if SECRETS_ERROR else "")
+    )
+    st.stop()
 
 if not check_password():
     st.stop()
