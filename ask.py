@@ -13,6 +13,12 @@ def show(result: dict) -> None:
     for i, q in enumerate(result["queries"], 1):
         status = f"error: {q['error']}" if "error" in q else f"{q['row_count']} rows"
         print(f"\n--- SQL {i} ({status}) ---\n{q['sql']}")
+    if result["sources"]:
+        print("\n--- Sources ---")
+        for s in result["sources"]:
+            print(f"[{s['id']}] {s['source']}, {s['location']}")
+    u = result["usage"]
+    print(f"\n({u['input_tokens']:,} input / {u['output_tokens']:,} output tokens)")
 
 
 if __name__ == "__main__":

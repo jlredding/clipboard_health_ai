@@ -2,3 +2,8 @@ anthropic
 snowflake-connector-python
 cryptography
 python-dotenv
+streamlit
+fastembed
+rank-bm25
+numpy
+pypdf

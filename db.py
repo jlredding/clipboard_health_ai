@@ -94,16 +94,28 @@ def _jsonable(v):
     return v
 
 
-def run_sql(sql: str) -> dict:
-    """Run one read-only query. Returns columns, up to MAX_ROWS rows, and whether rows were cut off."""
-    clean = check_sql(sql)
+def _execute(sql: str):
     cur = get_connection().cursor()
     try:
-        cur.execute(clean)
+        cur.execute(sql)
         columns = [d[0] for d in cur.description]
         rows = cur.fetchmany(MAX_ROWS + 1)  # fetch one extra to know if we truncated
     finally:
         cur.close()
+    return columns, rows
+
+
+def run_sql(sql: str) -> dict:
+    """Run one read-only query. Returns columns, up to MAX_ROWS rows, and whether rows were cut off."""
+    clean = check_sql(sql)
+    try:
+        columns, rows = _execute(clean)
+    except snowflake.connector.errors.Error as e:
+        # A long-running app (Streamlit) can outlive its Snowflake session: reconnect once and retry.
+        if "expired" not in str(e).lower() and "connection" not in str(e).lower():
+            raise
+        get_connection.cache_clear()
+        columns, rows = _execute(clean)
     truncated = len(rows) > MAX_ROWS
     rows = rows[:MAX_ROWS]
     return {
