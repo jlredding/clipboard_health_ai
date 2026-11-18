@@ -1,0 +1,4 @@
+anthropic
+snowflake-connector-python
+cryptography
+python-dotenv

@@ -1,0 +1,11 @@
+# secrets: never commit
+.env
+*.p8
+*.pub
+.streamlit/secrets.toml
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
