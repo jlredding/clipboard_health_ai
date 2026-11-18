@@ -2,6 +2,8 @@
 
 An LLM assistant that answers staffing questions with SQL on Snowflake and cited CMS documentation, and an agent that reviews each new quarter of data and writes an evidence-backed staffing brief.
 
+**[Try the live app →](https://clipboardhealthai.streamlit.app/)**
+
 This is the AI layer on top of my [nursing home staffing pipeline](https://github.com/jlredding/clipboard_health_pipeline) (CMS PBJ → S3 → Snowflake → dbt) and the original [staffing dashboard](https://github.com/jlredding/Clipboard_Health_Dashboard).
 
 ```mermaid
