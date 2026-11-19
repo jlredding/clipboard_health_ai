@@ -135,7 +135,7 @@ def ask(question: str, history: list | None = None) -> dict:
       messages: the full conversation, to pass back as history for follow-ups
       usage: input/output tokens for this question
     """
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"].strip())
     messages = list(history or []) + [{"role": "user", "content": question}]
     log = {"queries": [], "passages": {}}
     usage = {"input_tokens": 0, "output_tokens": 0}

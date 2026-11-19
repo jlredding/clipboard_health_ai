@@ -289,7 +289,7 @@ def _remind(messages: list, text: str) -> None:
 def investigate(detected: dict, trace_path: Path) -> Run:
     run = Run(detected["quarter"], trace_path)
     run.trace("detected", **{k: v for k, v in detected.items() if k != "detection_sql"})
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"].strip())
     system = SYSTEM.format(schema=get_schema_text())
     brief = {k: v for k, v in detected.items() if k != "detection_sql"}
     messages = [{"role": "user", "content":

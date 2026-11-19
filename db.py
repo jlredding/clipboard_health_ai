@@ -57,25 +57,30 @@ def check_sql(sql: str) -> str:
 
 def _private_key():
     # Locally: a path to the .p8 file. On Streamlit Cloud: the key text itself in SNOWFLAKE_PRIVATE_KEY.
-    pem = os.environ.get("SNOWFLAKE_PRIVATE_KEY")
+    pem = os.environ.get("SNOWFLAKE_PRIVATE_KEY", "").strip()
     if pem:
-        data = pem.encode()
+        data = (pem + "\n").encode()
     else:
-        with open(os.path.expanduser(os.environ["SNOWFLAKE_PRIVATE_KEY_PATH"]), "rb") as f:
+        with open(os.path.expanduser(_env("SNOWFLAKE_PRIVATE_KEY_PATH")), "rb") as f:
             data = f.read()
     return serialization.load_pem_private_key(data, password=None)
+
+
+def _env(name: str) -> str:
+    """Read a setting, ignoring stray spaces/newlines (easy to paste into a secret by accident)."""
+    return os.environ[name].strip()
 
 
 @lru_cache(maxsize=1)
 def get_connection():
     conn = snowflake.connector.connect(
-        account=os.environ["SNOWFLAKE_ACCOUNT"],
-        user=os.environ["SNOWFLAKE_USER"],
+        account=_env("SNOWFLAKE_ACCOUNT"),
+        user=_env("SNOWFLAKE_USER"),
         private_key=_private_key(),
-        role=os.environ["SNOWFLAKE_ROLE"],
-        warehouse=os.environ["SNOWFLAKE_WAREHOUSE"],
-        database=os.environ["SNOWFLAKE_DATABASE"],
-        schema=os.environ["SNOWFLAKE_SCHEMA"],
+        role=_env("SNOWFLAKE_ROLE"),
+        warehouse=_env("SNOWFLAKE_WAREHOUSE"),
+        database=_env("SNOWFLAKE_DATABASE"),
+        schema=_env("SNOWFLAKE_SCHEMA"),
         session_parameters={
             "STATEMENT_TIMEOUT_IN_SECONDS": TIMEOUT_SECONDS,
             "QUERY_TAG": "clipboard_health_ai",
